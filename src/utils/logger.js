@@ -95,10 +95,11 @@ const logger = winston.createLogger({
     level: process.env.LOG_LEVEL || "info",
 
     transports: [
-        new winston.transports.Console({
-            format: consoleFormat,
-            handleExceptions: true
-        }),
+        // to print logs in console
+        // new winston.transports.Console({
+        //     format: consoleFormat,
+        //     handleExceptions: true
+        // }),
 
         new DailyRotateFile({
             filename: path.join(

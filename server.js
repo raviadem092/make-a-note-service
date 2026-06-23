@@ -14,6 +14,7 @@ const server = app.listen(PORT, () => {
         port: PORT,
         environment: process.env.NODE_ENV || "development"
     });
+    console.log(`Make A Note Service Running...`);
 });
 
 server.on("error", (error) => {
