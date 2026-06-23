@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+    container_name: notes-api
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.4
+    container_name: notes-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Mahesh@3395
+      MYSQL_DATABASE: make_a_note_dev
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:

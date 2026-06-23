@@ -28,6 +28,11 @@ const makeConnection = async () => {
   }
 };
 
-makeConnection();
+if (process.env.NODE_ENV !== "test") {
+  makeConnection();
+}
 
-module.exports = pool;
+module.exports = {
+  pool,
+  makeConnection
+};
