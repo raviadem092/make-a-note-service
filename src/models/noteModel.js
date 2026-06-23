@@ -1,66 +1,129 @@
 const db = require("../config/db");
-
+const logger = require("../utils/logger");
 const getAllNotes = async () => {
-  const [rows] = await db.query(
-    `SELECT *
-     FROM notes
-     ORDER BY id DESC`
-  );
+    try {
+        const [rows] = await db.query(
+            `
+            SELECT id, title, created_at, updated_at
+            FROM notes
+            ORDER BY id DESC
+            `
+        );
 
-  return rows;
+        return rows;
+    } catch (error) {
+        logger.error("NotesRepository.getAllNotes", {
+            message: error.message,
+            stack: error.stack,
+        });
+
+        throw error;
+    }
 };
 
-const getNote = async (id) => {
-  const [rows] = await db.query(
-    `SELECT *
-     FROM notes
-     WHERE id = ?`,
-    [id]
-  );
+const getNoteById = async (id) => {
+    try {
+        const [rows] = await db.query(
+            `
+            SELECT id, title, created_at, updated_at
+            FROM notes
+            WHERE id = ?
+            LIMIT 1
+            `,
+            [id]
+        );
 
-  return rows[0] || null;
+        return rows.length ? rows[0] : null;
+    } catch (error) {
+        logger.error("NotesRepository.getNoteById", {
+            id,
+            message: error.message,
+            stack: error.stack,
+        });
+
+        throw error;
+    }
 };
 
 const createNote = async (title) => {
-  const [result] = await db.query(
-    `INSERT INTO notes (title)
-     VALUES (?)`,
-    [title]
-  );
+    try {
+        const [result] = await db.query(
+            `
+            INSERT INTO notes (title)
+            VALUES (?)
+            `,
+            [title.trim()]
+        );
 
-  return await getNote(result.insertId);
+        return {
+            id: result.insertId,
+            title: title.trim(),
+        };
+    } catch (error) {
+        logger.error("NotesRepository.createNote", {
+            title,
+            message: error.message,
+            stack: error.stack,
+        });
+
+        throw error;
+    }
 };
 
-const updateNote = async (
-  id,
-  title
-) => {
-  await db.query(
-    `UPDATE notes
-     SET title = ?
-     WHERE id = ?`,
-    [title, id]
-  );
+const updateNote = async (id, title) => {
+    try {
+        const [result] = await db.query(
+            `
+            UPDATE notes
+            SET title = ?
+            WHERE id = ?
+            `,
+            [title.trim(), id]
+        );
 
-  return await getNote(id);
+        if (result.affectedRows === 0) {
+            return null;
+        }
+
+        return await getNoteById(id);
+    } catch (error) {
+        logger.error("NotesRepository.updateNote", {
+            id,
+            title,
+            message: error.message,
+            stack: error.stack,
+        });
+
+        throw error;
+    }
 };
 
 const deleteNote = async (id) => {
-  const note = await getNote(id);
+    try {
+        const [result] = await db.query(
+            `
+            DELETE FROM notes
+            WHERE id = ?
+            `,
+            [id]
+        );
 
-  await db.query(
-    `DELETE FROM notes
-     WHERE id = ?`,
-    [id]
-  );
+        return result.affectedRows > 0;
+    } catch (error) {
+        logger.error("NotesRepository.deleteNote", {
+            id,
+            message: error.message,
+            stack: error.stack,
+        });
 
-  return note;
+        throw error;
+    }
 };
 
 module.exports = {
-  getAllNotes,
-  getNote,
-  createNote,
-  updateNote,
-  deleteNote,
+    getAllNotes,
+    getNoteById,
+    createNote,
+    updateNote,
+    deleteNote,
 };

@@ -9,10 +9,10 @@ const errorHandler = (err, req, res, next) => {
 
     const statusCode =
         err.statusCode ||
-        HTTP_STATUS.SERVER_ERROR;
+        HTTP_STATUS.INTERNAL_SERVER_ERROR;
 
     const message =
-        statusCode === HTTP_STATUS.SERVER_ERROR
+        statusCode === HTTP_STATUS.INTERNAL_SERVER_ERROR
             ? RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR
             : err.message;
 

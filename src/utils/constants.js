@@ -8,8 +8,7 @@ const HTTP_STATUS = Object.freeze({
   FORBIDDEN: 403,
   NOT_FOUND: 404,
   CONFLICT: 409,
-
-  SERVER_ERROR: 500,
+  INTERNAL_SERVER_ERROR: 500,
 });
 
 const RESPONSE_MESSAGES = Object.freeze({

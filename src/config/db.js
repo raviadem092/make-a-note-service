@@ -1,4 +1,5 @@
 const mysql = require("mysql2/promise");
+const logger = require("../utils/logger");
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -16,22 +17,17 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-const testConnection = async () => {
+const makeConnection = async () => {
   try {
     const connection = await pool.getConnection();
-    console.log(
-      "MySQL Database Connected Successfully!!!"
-    );
+    logger.info("Database Connected Successfully...");
     connection.release();
   } catch (error) {
-    console.error(
-      "Database Connection Failed:",
-      error.message
-    );
+    logger.error("Database Connection Failed:", error.message);
     process.exit(1);
   }
 };
 
-testConnection();
+makeConnection();
 
 module.exports = pool;

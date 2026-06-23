@@ -1,27 +1,35 @@
-require("dotenv").config();
+const dotenv = require("dotenv");
+
+dotenv.config({
+    quiet: true
+});
+
 const app = require("./src/app");
+const logger = require("./src/utils/logger");
+
 const PORT = process.env.PORT || 5000;
+
 const server = app.listen(PORT, () => {
-    console.log(`
-=================================
- Make A Note Service Running
- Port : ${PORT}
- Environment : ${process.env.NODE_ENV || "development"}
-=================================
-`);
+    logger.info("Make A Note Service Running", {
+        port: PORT,
+        environment: process.env.NODE_ENV || "development"
+    });
 });
 
 server.on("error", (error) => {
-    console.error("Server startup failed:", error.message);
+    logger.error("Server startup failed", {
+        message: error.message,
+        stack: error.stack
+    });
     process.exit(1);
 });
 
 process.on("SIGINT", () => {
-    console.log("Shutting down server...");
+    logger.info("Shutting down server");
     process.exit(0);
 });
 
 process.on("SIGTERM", () => {
-    console.log("Server terminated");
+    logger.info("Server terminated");
     process.exit(0);
 });
