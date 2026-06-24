@@ -3,7 +3,7 @@ dotenv.config({ quiet: true });
 const app = require("./src/app");
 const logger = require("./src/utils/logger");
 const { makeConnection } = require("./src/config/db");
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5173;
 (async () => {
   try {
     await makeConnection();
