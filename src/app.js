@@ -13,7 +13,12 @@ const app = express();
 
 const API_PREFIX = "/api/v1";
 
-app.use(cors());
+app.use(cors(
+    {
+        origin: process.env.FRONT_END_URL,
+        credentials: true
+    }
+));
 
 app.use(express.json());
 
