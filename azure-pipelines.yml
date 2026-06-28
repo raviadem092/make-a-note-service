@@ -12,6 +12,8 @@ pr:
 
 variables:
   nodeVersion: "22.x"
+  azureServiceConnection: "make-a-note"
+  webAppName: "make-a-note-service-dev"
 
 stages:
   - stage: BuildAndTest
@@ -19,34 +21,46 @@ stages:
 
     jobs:
       - job: Build
-        displayName: "Install Dependencies and Run Tests"
+        displayName: "Install, Test and Package"
 
         pool:
           vmImage: "ubuntu-latest"
 
         steps:
           - task: NodeTool@0
+            displayName: "Use Node.js 22"
             inputs:
-              versionSpec: $(nodeVersion)
-            displayName: "Use Node.js"
+              versionSpec: "$(nodeVersion)"
 
-          - script: npm ci
+          - script: |
+              npm ci
             displayName: "Install Dependencies"
 
-          - script: npm run test:ci
+          - script: |
+              npm run test:ci
             displayName: "Run Unit & Integration Tests"
 
           - task: PublishTestResults@2
+            displayName: "Publish Test Results"
             condition: succeededOrFailed()
             inputs:
               testResultsFormat: "JUnit"
-              testResultsFiles: "test-results/junit.xml"
+              testResultsFiles: "**/test-results/junit.xml"
               failTaskOnFailedTests: true
               testRunTitle: "Jest Test Results"
 
-          - publish: $(System.DefaultWorkingDirectory)
-            artifact: source-code
-            displayName: "Publish Build Artifact"
+          - task: ArchiveFiles@2
+            displayName: "Create Deployment Package"
+            inputs:
+              rootFolderOrFile: "$(System.DefaultWorkingDirectory)"
+              includeRootFolder: false
+              archiveType: zip
+              archiveFile: "$(Build.ArtifactStagingDirectory)/app.zip"
+              replaceExistingArchive: true
+
+          - publish: "$(Build.ArtifactStagingDirectory)/app.zip"
+            artifact: drop
+            displayName: "Publish Deployment Artifact"
 
   - stage: QualityGate
     displayName: "Quality Gate"
@@ -64,3 +78,32 @@ stages:
           - script: |
               echo "Quality checks passed"
             displayName: "Quality Gate Validation"
+
+  - stage: Deploy
+    displayName: "Deploy to Azure"
+    dependsOn: QualityGate
+    condition: succeeded()
+
+    jobs:
+      - deployment: Deploy
+        displayName: "Deploy to Azure App Service"
+        environment: production
+
+        pool:
+          vmImage: "ubuntu-latest"
+
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: drop
+
+                - task: AzureWebApp@1
+                  displayName: "Deploy to Azure App Service"
+                  inputs:
+                    azureSubscription: "$(azureServiceConnection)"
+                    appType: "webAppLinux"
+                    appName: "$(webAppName)"
+                    runtimeStack: "NODE|22-lts"
+                    package: "$(Pipeline.Workspace)/drop/app.zip"
